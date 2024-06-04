@@ -1,7 +1,0 @@
-/Users/prabuddha/IdeaProjects/node-manager/src/main/java/com/nodemanager/cloud/AwsInstanceBuilder.java
-/Users/prabuddha/IdeaProjects/node-manager/src/main/java/com/nodemanager/model/NodeSpec.java
-/Users/prabuddha/IdeaProjects/node-manager/src/main/java/com/nodemanager/model/NodeStatus.java
-/Users/prabuddha/IdeaProjects/node-manager/src/main/java/com/nodemanager/common/OperatorKubernetesClientBuilder.java
-/Users/prabuddha/IdeaProjects/node-manager/src/main/java/com/nodemanager/NodeManagerApp.java
-/Users/prabuddha/IdeaProjects/node-manager/src/main/java/com/nodemanager/NodeManagerController.java
-/Users/prabuddha/IdeaProjects/node-manager/src/main/java/com/nodemanager/model/NodeManager.java
