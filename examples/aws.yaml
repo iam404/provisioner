@@ -1,0 +1,14 @@
+apiVersion: nodemanager.app/v1alpha1
+kind: AwsResourceProvisioner
+metadata:
+  name: test
+  namespace: default
+spec:
+  ami: "d"
+  instanceType: "d"
+  key: "d"
+  lifecycle: "d"
+  securityGroup: "d"
+  subnet: "d"
+  userdata: "d"
+  vpcId: "s"
