@@ -6,6 +6,8 @@ import java.util.List;
 
 public class NodeStatus {
     private List<String> reconciledBy;
+    private List<String> instanceIds;
+
 
     public List<String> getReconciledBy() {
         if (reconciledBy == null) {
@@ -20,4 +22,17 @@ public class NodeStatus {
     }
 
     // Add Status information here
+
+    public List<String> getInstanceIds() {
+        if (instanceIds == null) {
+            instanceIds = new ArrayList<>();
+        }
+        return instanceIds;
+    }
+
+    public NodeStatus setInstanceIds(List<String> resp) {
+        this.instanceIds = resp;
+
+        return this;
+    }
 }

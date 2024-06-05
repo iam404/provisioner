@@ -1,95 +1,41 @@
 package com.nodemanager.cloud;
 
+import com.nodemanager.model.NodeSpec;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
+import java.util.List;
+
 public class AwsInstanceBuilder {
-    private String amiId;
-    private String instanceType;
-    private int minCount;
-    private int maxCount;
-    private String keyName;
-    private String securityGroup;
-    private String subnetId;
-    private boolean monitoringEnabled;
 
-    public AwsInstanceBuilder() {}
+    private final Ec2Client ec2Client;
 
-    public static Builder builder() {
-        return new Builder();
+
+    public AwsInstanceBuilder() {
+        this.ec2Client = Ec2Client.builder().region(Region.AP_SOUTH_1).build();
     }
 
-    public static class Builder {
-        private final AwsInstanceBuilder instanceBuilder;
 
-        private Builder() {
-            instanceBuilder = new AwsInstanceBuilder();
-        }
+    public RunInstancesResponse createInstance(NodeSpec nodeSpec) {
 
-        public Builder amiId(String amiId) {
-            instanceBuilder.amiId = amiId;
-            return this;
-        }
-
-        public Builder instanceType(String instanceType) {
-            instanceBuilder.instanceType = instanceType;
-            return this;
-        }
-
-        public Builder minCount(int minCount) {
-            instanceBuilder.minCount = minCount;
-            return this;
-        }
-
-        public Builder maxCount(int maxCount) {
-            instanceBuilder.maxCount = maxCount;
-            return this;
-        }
-
-        public Builder keyName(String keyName) {
-            instanceBuilder.keyName = keyName;
-            return this;
-        }
-
-        public Builder securityGroup(String securityGroup) {
-            instanceBuilder.securityGroup = securityGroup;
-            return this;
-        }
-
-        public Builder subnetId(String subnetId) {
-            instanceBuilder.subnetId = subnetId;
-            return this;
-        }
-
-        public Builder monitoringEnabled(boolean monitoringEnabled) {
-            instanceBuilder.monitoringEnabled = monitoringEnabled;
-            return this;
-        }
-
-        public AwsInstanceBuilder build() {
-            return instanceBuilder;
-        }
-    }
-
-    public void createInstanceTest() {
-
-        System.out.println("Test creating instance ..");
-
-    }
-
-    public RunInstancesResponse createInstance() {
-        Ec2Client ec2Client = Ec2Client.builder().region(Region.AP_SOUTH_1).build();
+        BlockDeviceMapping blockDeviceMapping = BlockDeviceMapping.builder()
+                .deviceName("/dev/xvda")
+                .ebs(EbsBlockDevice.builder().volumeSize(nodeSpec.getVolumeSize()).build())
+                .build();
 
         RunInstancesRequest runInstancesRequest = RunInstancesRequest.builder()
-                .imageId(amiId)
-                .instanceType(instanceType)
-                .minCount(minCount)
-                .maxCount(maxCount)
-                .keyName(keyName)
-                .securityGroupIds(securityGroup)
-                .subnetId(subnetId)
-                .monitoring(RunInstancesMonitoringEnabled.builder().enabled(monitoringEnabled).build())
+                .imageId(nodeSpec.getAmiId())
+                .instanceType(nodeSpec.getInstanceType())
+                .minCount(nodeSpec.getMinCount())
+                .maxCount(nodeSpec.getMaxCount())
+                .keyName(nodeSpec.getKeyName())
+                .securityGroupIds(nodeSpec.getSecurityGroup())
+                .subnetId(nodeSpec.getSubnetId())
+                .blockDeviceMappings(blockDeviceMapping)
+               // .userData(nodeSpec.getUserdata())
+                .monitoring(RunInstancesMonitoringEnabled.builder().enabled(nodeSpec.isMonitoringEnabled()).build())
+               // .dryRun(Boolean.TRUE) // <-- Dry RUN
                 .build();
 
         RunInstancesResponse response = ec2Client.runInstances(runInstancesRequest);
@@ -98,9 +44,22 @@ public class AwsInstanceBuilder {
     }
 
 
-    public void cleanupInstanceTest() {
+    public void cleanupInstance(List<String> instanceIds) {
 
-        System.out.println("Cleaning up instance ..");
+        for (String instanceId : instanceIds) {
+            System.out.println("Cleaning up instance .." + instanceId );
+            TerminateInstancesRequest terminateRequest = TerminateInstancesRequest.builder()
+                    .instanceIds(instanceId)
+                    .build();
+
+            TerminateInstancesResponse terminateResponse = ec2Client.terminateInstances(terminateRequest);
+            for (InstanceStateChange change : terminateResponse.terminatingInstances()) {
+                System.out.printf("Instance %s is %s%n",
+                        change.instanceId(), change.currentState().name());
+            }
+        }
+
+
 
     }
 }

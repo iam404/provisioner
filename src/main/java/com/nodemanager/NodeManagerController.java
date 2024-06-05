@@ -8,6 +8,12 @@ import io.javaoperatorsdk.operator.api.reconciler.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.nodemanager.model.*;
+import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 @ControllerConfiguration
 public class NodeManagerController implements Reconciler<NodeManager>, Cleaner<NodeManager> {
@@ -16,6 +22,8 @@ public class NodeManagerController implements Reconciler<NodeManager>, Cleaner<N
     private AwsInstanceBuilder awsInstanceBuilder;
     private KubernetesClient client;
     private String identity;
+
+    private List<String> instanceIds;
 
 
     static final Logger log = LoggerFactory.getLogger(NodeManagerController.class);
@@ -35,10 +43,29 @@ public class NodeManagerController implements Reconciler<NodeManager>, Cleaner<N
             resource.setStatus(new NodeStatus());
         }
 
+       log.info(resource.getSpec().toString());
+
         resource.getStatus().getReconciledBy().add(identity);
         log.info("reconciled by {} {}", resource.getStatus().getReconciledBy(), identity);
 
-        awsInstanceBuilder.createInstanceTest();
+        // Check if instance IDs already exist in the status
+        if (resource.getStatus().getInstanceIds() == null || resource.getStatus().getInstanceIds().isEmpty()) {
+            // Create new instances if no instance IDs are found
+            RunInstancesResponse resp = awsInstanceBuilder.createInstance(resource.getSpec());
+
+            if (this.instanceIds == null) {
+                this.instanceIds = new ArrayList<>();
+            }
+
+            for (Iterator<Instance> it = resp.instances().iterator(); it.hasNext(); ) {
+                Instance instance = it.next();
+
+                this.instanceIds.add(instance.instanceId());
+            }
+
+            resource.getStatus().setInstanceIds(instanceIds);
+        }
+
 
 
         return UpdateControl.updateStatus(resource);
@@ -47,7 +74,7 @@ public class NodeManagerController implements Reconciler<NodeManager>, Cleaner<N
     @Override
     public DeleteControl cleanup(NodeManager nodeManager, Context<NodeManager> context) {
 
-        awsInstanceBuilder.cleanupInstanceTest();
-        return null;
+        awsInstanceBuilder.cleanupInstance(nodeManager.getStatus().getInstanceIds());
+        return DeleteControl.defaultDelete();
     }
 }

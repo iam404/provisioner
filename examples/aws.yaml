@@ -4,11 +4,15 @@ metadata:
   name: test
   namespace: default
 spec:
-  ami: "d"
-  instanceType: "d"
-  key: "d"
-  lifecycle: "d"
-  securityGroup: "d"
-  subnet: "d"
+  amiId: "ami-08e5424edfe926b43"
+  instanceType: "c5a.large"
+  keyName: "prod_mumbai_services"
+  lifecycle: "ONDEMAND"
+  securityGroup: "sg-0a64c49b03005310f"
+  subnetId: "subnet-0733363c10981a7d0"
   userdata: "d"
-  vpcId: "s"
+  vpcId: "vpc-0b17697952e53bc6a"
+  volumeSize: 30
+  monitoringEnabled: true
+  minCount: 1
+  maxCount: 1
