@@ -31,21 +31,6 @@ public class NodeManagerApp {
 
         AwsInstanceBuilder awsInstanceBuilder = new AwsInstanceBuilder();
 
-        /*
-        Helper helper = new Helper();
-        DeploymentManifestBuilder deploymentBuilder = new DeploymentManifestBuilder(helper);
-        ServiceMonitorBuilder serviceMonitorBuilder = new ServiceMonitorBuilder(helper);
-
-        MappingBuilder mappingBuilder = new MappingBuilder(helper);
-        ServiceManifestBuilder serviceManifestBuilder = new ServiceManifestBuilder(helper);
-        AutoscalingManifestBuilder autoscalingManifestBuilder = new AutoscalingManifestBuilder(helper);
-
-        PdbManifestBuilder pdbManifestBuilder = new PdbManifestBuilder(helper);
-        SecretManifestBuilder secretManifestBuilder = new SecretManifestBuilder(helper);
-        ServiceAccountManifestBuilder serviceAccountManifestBuilder = new ServiceAccountManifestBuilder(helper);
-
-        */
-
         operator.register(new NodeManagerController(client, identity, awsInstanceBuilder));
 
         SpringApplication.run(NodeManagerApp.class, args);

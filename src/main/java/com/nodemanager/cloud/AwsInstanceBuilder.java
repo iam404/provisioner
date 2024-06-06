@@ -33,10 +33,12 @@ public class AwsInstanceBuilder {
                 .securityGroupIds(nodeSpec.getSecurityGroup())
                 .subnetId(nodeSpec.getSubnetId())
                 .blockDeviceMappings(blockDeviceMapping)
-               // .userData(nodeSpec.getUserdata())
+                .userData(nodeSpec.getUserdata())
                 .monitoring(RunInstancesMonitoringEnabled.builder().enabled(nodeSpec.isMonitoringEnabled()).build())
+                .iamInstanceProfile(IamInstanceProfileSpecification.builder().arn(nodeSpec.getInstanceProfile()).build())
                // .dryRun(Boolean.TRUE) // <-- Dry RUN
                 .build();
+
 
         RunInstancesResponse response = ec2Client.runInstances(runInstancesRequest);
         System.out.println("EC2 Instance created with ID: " + response.instances().get(0).instanceId());

@@ -50,20 +50,29 @@ public class NodeManagerController implements Reconciler<NodeManager>, Cleaner<N
 
         // Check if instance IDs already exist in the status
         if (resource.getStatus().getInstanceIds() == null || resource.getStatus().getInstanceIds().isEmpty()) {
-            // Create new instances if no instance IDs are found
-            RunInstancesResponse resp = awsInstanceBuilder.createInstance(resource.getSpec());
 
-            if (this.instanceIds == null) {
-                this.instanceIds = new ArrayList<>();
+
+            try {
+
+                // Create new instances if no instance IDs are found
+                RunInstancesResponse resp = awsInstanceBuilder.createInstance(resource.getSpec());
+
+                if (this.instanceIds == null) {
+                    this.instanceIds = new ArrayList<>();
+                }
+
+                for (Iterator<Instance> it = resp.instances().iterator(); it.hasNext(); ) {
+                    Instance instance = it.next();
+
+                    this.instanceIds.add(instance.instanceId());
+                }
+
+                resource.getStatus().setInstanceIds(instanceIds);
+                resource.getStatus().setStatus("SUCCESS");
+            } catch(Exception e) {
+                log.error(e.getMessage());
+                resource.getStatus().setStatus("FAILED");
             }
-
-            for (Iterator<Instance> it = resp.instances().iterator(); it.hasNext(); ) {
-                Instance instance = it.next();
-
-                this.instanceIds.add(instance.instanceId());
-            }
-
-            resource.getStatus().setInstanceIds(instanceIds);
         }
 
 
