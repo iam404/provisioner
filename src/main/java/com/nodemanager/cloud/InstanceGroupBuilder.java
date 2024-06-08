@@ -39,7 +39,7 @@ public class InstanceGroupBuilder {
                 .keyName(keyName)
                 .securityGroupIds(securityGroup)
                 .blockDeviceMappings(blockDeviceMapping)
-                .iamInstanceProfile(LaunchTemplateIamInstanceProfileSpecificationRequest.builder().name(instanceProfile).build())
+                .iamInstanceProfile(LaunchTemplateIamInstanceProfileSpecificationRequest.builder().arn(instanceProfile).build())
                 .userData(userData)
                 .build();
 
