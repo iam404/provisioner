@@ -1,6 +1,9 @@
 package com.nodemanager;
 
 import com.nodemanager.cloud.AwsInstanceBuilder;
+import com.nodemanager.controller.InstanceGroupController;
+import com.nodemanager.controller.NodeManagerController;
+import com.nodemanager.controller.S3ProvisionerController;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.Operator;
 import io.javaoperatorsdk.operator.api.config.LeaderElectionConfiguration;
@@ -32,6 +35,8 @@ public class NodeManagerApp {
         AwsInstanceBuilder awsInstanceBuilder = new AwsInstanceBuilder();
 
         operator.register(new NodeManagerController(client, identity, awsInstanceBuilder));
+        operator.register(new S3ProvisionerController());
+        operator.register(new InstanceGroupController());
 
         SpringApplication.run(NodeManagerApp.class, args);
         operator.start();

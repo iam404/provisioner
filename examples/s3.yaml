@@ -1,0 +1,8 @@
+apiVersion: aws.provisioner.app/v1alpha1
+kind: S3Bucket
+metadata:
+  name: test
+  namespace: default
+spec:
+  name: "test-operator-licious"
+  region: "ap-south-1"
