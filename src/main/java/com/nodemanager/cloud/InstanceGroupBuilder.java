@@ -53,7 +53,9 @@ public class InstanceGroupBuilder {
         System.out.println("Launch Template created: " + launchTemplateName);
     }
 
-    public void createAutoScalingGroup(String autoScalingGroupName, String launchConfigurationName, String vpcZoneIdentifier, int minSize, int maxSize, int desiredCapacity, List<String> mixedInstanceTypes) {
+    public void createAutoScalingGroup(String autoScalingGroupName, String launchConfigurationName, String vpcZoneIdentifier, 
+                                     int minSize, int maxSize, int desiredCapacity, List<String> mixedInstanceTypes, 
+                                     List<com.nodemanager.model.instancegroup.Tag> tags) {
 
         // Launch Template
         LaunchTemplateSpecification launchTemplateSpecification = LaunchTemplateSpecification.builder()
@@ -83,19 +85,39 @@ public class InstanceGroupBuilder {
                 .instancesDistribution(instancesDistribution)
                 .build();
 
-        // ASG
-        CreateAutoScalingGroupRequest request = CreateAutoScalingGroupRequest.builder()
+        // Convert custom tags to AWS Tag type
+        List<software.amazon.awssdk.services.autoscaling.model.Tag> awsTags = null;
+        if (tags != null && !tags.isEmpty()) {
+            awsTags = tags.stream()
+                .map(tag -> software.amazon.awssdk.services.autoscaling.model.Tag.builder()
+                    .key(tag.getKey())
+                    .value(tag.getValue())
+                    .propagateAtLaunch(tag.isPropagateAtLaunch())
+                    .resourceId(autoScalingGroupName)
+                    .resourceType("auto-scaling-group")
+                    .build())
+                .collect(Collectors.toList());
+        }
+
+        // Build ASG request
+        CreateAutoScalingGroupRequest.Builder requestBuilder = CreateAutoScalingGroupRequest.builder()
                 .autoScalingGroupName(autoScalingGroupName)
-                //.launchTemplate(launchTemplateSpecification)
                 .vpcZoneIdentifier(vpcZoneIdentifier)
                 .minSize(minSize)
                 .maxSize(maxSize)
                 .desiredCapacity(desiredCapacity)
+                .mixedInstancesPolicy(mixedInstancesPolicy);
                 //.availabilityZones(availabilityZones)
-                .mixedInstancesPolicy(mixedInstancesPolicy)
-               // .serviceLinkedRoleARN()
-               // .placementGroup()
-                .build();
+                //.serviceLinkedRoleARN()
+                //.placementGroup()
+
+        
+        // Add tags if they exist
+        if (awsTags != null && !awsTags.isEmpty()) {
+            requestBuilder.tags(awsTags);
+        }
+
+        CreateAutoScalingGroupRequest request = requestBuilder.build();
 
         CreateAutoScalingGroupResponse response = autoScalingClient.createAutoScalingGroup(request);
         System.out.println("Auto Scaling Group created: " + autoScalingGroupName);

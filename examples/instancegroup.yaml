@@ -2,9 +2,9 @@ apiVersion: aws.provisioner.app/v1alpha1
 kind: InstanceGroup
 metadata:
   name: test
-  namespace: default
+  namespace: provisioner
 spec:
-  name: "test-asg-operator"
+  name: "test-asg-operator03"
   region: "ap-south-1"
   amiId: "ami-085ff1153b5d0a859"
   vpcZoneIdentifier: "subnet-0ed85e5a4be2f9f17" #"vpc-0325ab6456912a5d6"
@@ -19,3 +19,13 @@ spec:
   iamInstanceProfile: "arn:aws:iam::028686181435:instance-profile/terraform-eks-devops-eks012023062611254195470000000d"
   mixedInstancesPolicy: true
   mixedInstanceTypes: ["r5.large", "t3a.large"]
+  tags:
+    - key: "Environment"
+      value: "Production"
+      propagateAtLaunch: true
+    - key: "Project"
+      value: "NodeManager"
+      propagateAtLaunch: true
+    - key: "ManagedBy"
+      value: "kubernetes-operator"
+      propagateAtLaunch: true

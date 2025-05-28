@@ -41,7 +41,8 @@ public class InstanceGroupController implements Reconciler<InstanceGroupCustomRe
                     resource.getSpec().getMinSize(),
                     resource.getSpec().getMaxSize(),
                     resource.getSpec().getDesiredCapacity(),
-                    resource.getSpec().getMixedInstanceTypes()
+                    resource.getSpec().getMixedInstanceTypes(),
+                    resource.getSpec().getTags()
             );
 
             status.setAutoScalingGroupName(resource.getSpec().getName());

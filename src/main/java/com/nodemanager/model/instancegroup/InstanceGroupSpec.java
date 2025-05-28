@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Getter
@@ -29,5 +30,6 @@ public class InstanceGroupSpec {
     private String keyName;
     private String securityGroupId;
     private String iamInstanceProfile;
+    private List<Tag> tags;
 
 }
