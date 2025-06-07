@@ -33,6 +33,12 @@ public class InstanceGroupSpec {
     private String iamInstanceProfile;
     private List<Tag> tags;
 
+    /**
+     * If true, prevents deletion of AWS resources when the InstanceGroup CR is deleted.
+     */
+    @JsonProperty("preventDeletion")
+    private boolean preventDeletion = false;
+
     public String getUserDataBase64() {
         if (userDataBase64 != null && !userDataBase64.isEmpty()) {
             return userDataBase64;

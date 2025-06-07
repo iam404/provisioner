@@ -1,6 +1,5 @@
 package com.nodemanager.cloud;
 
-import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.*;
@@ -251,4 +250,36 @@ public class InstanceGroupBuilder {
         CreateAutoScalingGroupResponse response = autoScalingClient.createAutoScalingGroup(request);
         System.out.println("Auto Scaling Group created: " + autoScalingGroupName);
     }
+
+    /**
+     * Deletes an Auto Scaling Group by name.
+     */
+    public void deleteAutoScalingGroup(String autoScalingGroupName) {
+        try {
+            DeleteAutoScalingGroupRequest request = DeleteAutoScalingGroupRequest.builder()
+                    .autoScalingGroupName(autoScalingGroupName)
+                    .forceDelete(true)
+                    .build();
+            autoScalingClient.deleteAutoScalingGroup(request);
+            System.out.println("Auto Scaling Group deleted: " + autoScalingGroupName);
+        } catch (Exception e) {
+            System.err.println("Failed to delete Auto Scaling Group: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Deletes a Launch Template by name.
+     */
+    public void deleteLaunchTemplate(String launchTemplateName) {
+        try {
+            DeleteLaunchTemplateRequest request = DeleteLaunchTemplateRequest.builder()
+                    .launchTemplateName(launchTemplateName)
+                    .build();
+            ec2Client.deleteLaunchTemplate(request);
+            System.out.println("Launch Template deleted: " + launchTemplateName);
+        } catch (Exception e) {
+            System.err.println("Failed to delete Launch Template: " + e.getMessage());
+        }
+    }
 }
+
