@@ -27,9 +27,19 @@ public class InstanceGroupSpec {
     private boolean mixedInstancesPolicy;
     private List<String> mixedInstanceTypes;
     private String userData;
+    private String userDataBase64;
     private String keyName;
     private String securityGroupId;
     private String iamInstanceProfile;
     private List<Tag> tags;
 
+    public String getUserDataBase64() {
+        if (userDataBase64 != null && !userDataBase64.isEmpty()) {
+            return userDataBase64;
+        }
+        if (userData != null && !userData.isEmpty()) {
+            return java.util.Base64.getEncoder().encodeToString(userData.getBytes());
+        }
+        return null;
+    }
 }

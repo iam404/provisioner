@@ -7,6 +7,10 @@
     <groupId>com.nodemanager</groupId>
     <artifactId>nodemanager</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>provisioner</module>
+    </modules>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
