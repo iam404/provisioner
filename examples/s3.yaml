@@ -4,7 +4,7 @@ metadata:
   name: test
   namespace: default
 spec:
-  name: "test-operator-licious"
+  name: "s3-bucket-example"
   region: "ap-south-1"
 
 

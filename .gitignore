@@ -5,3 +5,5 @@ target/**
 .DS_Store
 .idea/compiler.xml
 .idea/encodings.xml
+.examples-licious
+.examples-licious/**

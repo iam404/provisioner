@@ -4,17 +4,17 @@ metadata:
   name: test
   namespace: provisioner
 spec:
-  name: "test-asg-operator031"
+  name: "InstanceGroup01"
   region: "ap-south-1"
-  amiId: "ami-085ff1153b5d0a859"
-  vpcZoneIdentifier: "subnet-0ed85e5a4be2f9f17" #"vpc-0325ab6456912a5d6"
+  amiId: "ami-xyz"
+  vpcZoneIdentifier: "subnet-xyz" #"vpc-0325ab6456912a5d6"
   minSize: 1
   maxSize: 1
   desiredCapacity: 1
   instanceType: "r5.large"
   volumeSize: 30
-  keyName: "prod_mumbai_services"
-  securityGroupId: "sg-00cd3152462242bc0"
+  keyName: "xyz"
+  securityGroupId: "sg-xyz"
   userData: |-
     #!/bin/bash
 
@@ -31,7 +31,7 @@ spec:
 
     # https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/faq.md
     echo -e "InhibitDelayMaxSec=45\n"    
-  iamInstanceProfile: "arn:aws:iam::028686181435:instance-profile/terraform-eks-devops-eks012023062611254195470000000d"
+  iamInstanceProfile: "arn:aws:iam::123:instance-profile/xyz"
   mixedInstancesPolicy: true
   mixedInstanceTypes: ["r5.large", "t3a.large"]
   preventDeletion: true
