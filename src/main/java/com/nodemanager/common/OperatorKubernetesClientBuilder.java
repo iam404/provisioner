@@ -8,8 +8,7 @@ public class OperatorKubernetesClientBuilder {
     private OperatorKubernetesClientBuilder() {}
 
     public static KubernetesClient build() {
-        KubernetesClient client = new KubernetesClientBuilder().build();
-        return client;
+        return new KubernetesClientBuilder().build();
     }
 
 
