@@ -57,7 +57,11 @@ public class InstanceGroupBuilder {
                 .build();
 
         CreateLaunchTemplateVersionResponse response = ec2Client.createLaunchTemplateVersion(request);
-        System.out.println("Launch Template updated: " + launchTemplateName);
+        if (response.launchTemplateVersion() != null) {
+            System.out.println("Launch Template updated: " + launchTemplateName + ", version: " + response.launchTemplateVersion().versionNumber());
+        } else {
+            System.out.println("Launch Template update initiated for: " + launchTemplateName);
+        }
     }
 
     /**
@@ -73,7 +77,8 @@ public class InstanceGroupBuilder {
      */
     public void updateAutoScalingGroup(String autoScalingGroupName, String vpcZoneIdentifier, 
                                      int minSize, int maxSize, int desiredCapacity, List<String> mixedInstanceTypes, 
-                                     List<com.nodemanager.model.instancegroup.Tag> tags) {
+                                     List<com.nodemanager.model.instancegroup.Tag> tags,
+                                     com.nodemanager.model.instancegroup.InstancesDistribution instancesDistributionConfig) {
         
         // Launch Template
         LaunchTemplateSpecification launchTemplateSpecification = LaunchTemplateSpecification.builder()
@@ -81,14 +86,38 @@ public class InstanceGroupBuilder {
                 .version("$Latest")
                 .build();
 
-        InstancesDistribution instancesDistribution = InstancesDistribution.builder()
-                .onDemandPercentageAboveBaseCapacity(0) // 100% Spot instances
-                .spotAllocationStrategy("lowest-price")
-                .build();
+        software.amazon.awssdk.services.autoscaling.model.InstancesDistribution.Builder instancesDistributionBuilder = 
+            software.amazon.awssdk.services.autoscaling.model.InstancesDistribution.builder()
+                .onDemandAllocationStrategy("prioritized")
+                .onDemandBaseCapacity(100)
+                .onDemandPercentageAboveBaseCapacity(0)
+                .spotAllocationStrategy("lowest-price");
+
+        // Apply custom instancesDistribution configuration if provided
+        if (instancesDistributionConfig != null) {
+                if (instancesDistributionConfig.getOnDemandAllocationStrategy() != null) {
+                    instancesDistributionBuilder.onDemandAllocationStrategy(instancesDistributionConfig.getOnDemandAllocationStrategy());
+                }
+                if (instancesDistributionConfig.getOnDemandBaseCapacity() != null) {
+                    instancesDistributionBuilder.onDemandBaseCapacity(instancesDistributionConfig.getOnDemandBaseCapacity());
+                }
+                if (instancesDistributionConfig.getOnDemandPercentageAboveBaseCapacity() != null) {
+                    instancesDistributionBuilder.onDemandPercentageAboveBaseCapacity(instancesDistributionConfig.getOnDemandPercentageAboveBaseCapacity());
+                }
+                if (instancesDistributionConfig.getSpotAllocationStrategy() != null) {
+                    instancesDistributionBuilder.spotAllocationStrategy(instancesDistributionConfig.getSpotAllocationStrategy());
+                }
+                if (instancesDistributionConfig.getSpotInstancePools() != null) {
+                    instancesDistributionBuilder.spotInstancePools(instancesDistributionConfig.getSpotInstancePools());
+                }
+            }
+    
+        software.amazon.awssdk.services.autoscaling.model.InstancesDistribution instancesDistribution = instancesDistributionBuilder.build();
 
         List<LaunchTemplateOverrides> overrides = mixedInstanceTypes.stream()
                 .map(instanceType -> LaunchTemplateOverrides.builder()
                         .instanceType(instanceType)
+                        .weightedCapacity(1)
                         .build())
                 .collect(Collectors.toList());
 
@@ -128,6 +157,9 @@ public class InstanceGroupBuilder {
 
         // Update Auto Scaling Group
         UpdateAutoScalingGroupResponse updateResponse = autoScalingClient.updateAutoScalingGroup(request);
+        if (updateResponse.sdkHttpResponse() != null && updateResponse.sdkHttpResponse().isSuccessful()) {
+            System.out.println("Successfully updated Auto Scaling Group: " + autoScalingGroupName);
+        }
         System.out.println("Auto Scaling Group updated: " + autoScalingGroupName);
 
         // Update tags if they exist
@@ -183,7 +215,8 @@ public class InstanceGroupBuilder {
 
     public void createAutoScalingGroup(String autoScalingGroupName, String launchConfigurationName, String vpcZoneIdentifier, 
                                      int minSize, int maxSize, int desiredCapacity, List<String> mixedInstanceTypes, 
-                                     List<com.nodemanager.model.instancegroup.Tag> tags) {
+                                     List<com.nodemanager.model.instancegroup.Tag> tags,
+                                     com.nodemanager.model.instancegroup.InstancesDistribution instancesDistributionConfig) {
 
         // Launch Template
         LaunchTemplateSpecification launchTemplateSpecification = LaunchTemplateSpecification.builder()
@@ -191,21 +224,47 @@ public class InstanceGroupBuilder {
                 .version("$Latest")
                 .build();
 
-        InstancesDistribution instancesDistribution = InstancesDistribution.builder()
-                .onDemandPercentageAboveBaseCapacity(0) // 100% Spot instances
-                .spotAllocationStrategy("lowest-price")
-                .build();
-
+        // Create LaunchTemplateOverrides for mixed instances
         List<LaunchTemplateOverrides> overrides = mixedInstanceTypes.stream()
                 .map(instanceType -> LaunchTemplateOverrides.builder()
                         .instanceType(instanceType)
                         .build())
                 .collect(Collectors.toList());
 
+        // Create LaunchTemplate
         LaunchTemplate launchTemplate = LaunchTemplate.builder()
                 .launchTemplateSpecification(launchTemplateSpecification)
                 .overrides(overrides)
                 .build();
+
+        // Configure InstancesDistribution with defaults that can be overridden
+        software.amazon.awssdk.services.autoscaling.model.InstancesDistribution.Builder instancesDistributionBuilder = 
+            software.amazon.awssdk.services.autoscaling.model.InstancesDistribution.builder()
+                .onDemandAllocationStrategy("prioritized")
+                .onDemandBaseCapacity(100)
+                .onDemandPercentageAboveBaseCapacity(0)
+                .spotAllocationStrategy("lowest-price");
+
+        // Apply custom instancesDistribution configuration if provided
+        if (instancesDistributionConfig != null) {
+            if (instancesDistributionConfig.getOnDemandAllocationStrategy() != null) {
+                instancesDistributionBuilder.onDemandAllocationStrategy(instancesDistributionConfig.getOnDemandAllocationStrategy());
+            }
+            if (instancesDistributionConfig.getOnDemandBaseCapacity() != null) {
+                instancesDistributionBuilder.onDemandBaseCapacity(instancesDistributionConfig.getOnDemandBaseCapacity());
+            }
+            if (instancesDistributionConfig.getOnDemandPercentageAboveBaseCapacity() != null) {
+                instancesDistributionBuilder.onDemandPercentageAboveBaseCapacity(instancesDistributionConfig.getOnDemandPercentageAboveBaseCapacity());
+            }
+            if (instancesDistributionConfig.getSpotAllocationStrategy() != null) {
+                instancesDistributionBuilder.spotAllocationStrategy(instancesDistributionConfig.getSpotAllocationStrategy());
+            }
+            if (instancesDistributionConfig.getSpotInstancePools() != null) {
+                instancesDistributionBuilder.spotInstancePools(instancesDistributionConfig.getSpotInstancePools());
+            }
+        }
+
+        software.amazon.awssdk.services.autoscaling.model.InstancesDistribution instancesDistribution = instancesDistributionBuilder.build();
 
         MixedInstancesPolicy mixedInstancesPolicy = MixedInstancesPolicy.builder()
                 //.launchTemplate(launchTemplateSpecification)

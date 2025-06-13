@@ -32,6 +32,9 @@ public class InstanceGroupSpec {
     private String securityGroupId;
     private String iamInstanceProfile;
     private List<Tag> tags;
+    
+    @JsonProperty("instancesDistribution")
+    private InstancesDistribution instancesDistribution;
 
     /**
      * If true, prevents deletion of AWS resources when the InstanceGroup CR is deleted.

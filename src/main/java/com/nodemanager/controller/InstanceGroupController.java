@@ -19,6 +19,7 @@ public class InstanceGroupController implements Reconciler<InstanceGroupCustomRe
     public UpdateControl<InstanceGroupCustomResource> reconcile(InstanceGroupCustomResource resource, Context<InstanceGroupCustomResource> context) throws Exception {
         ObjectMeta metadata = resource.getMetadata();
         InstanceGroupStatus status = Optional.ofNullable(resource.getStatus()).orElse(new InstanceGroupStatus());
+        long gen = metadata.getGeneration();
         InstanceGroupBuilder instanceGroupBuilder = new InstanceGroupBuilder(resource.getSpec().getRegion());
 
         // Add finalizer if not present
@@ -27,6 +28,12 @@ public class InstanceGroupController implements Reconciler<InstanceGroupCustomRe
             resource.setMetadata(metadata);
             return UpdateControl.updateResource(resource);
         }
+
+        // 2) Track generation & skip if already up-to-date
+        if (status.getObservedGeneration() != null && status.getObservedGeneration() == gen) {
+            return UpdateControl.noUpdate();
+        }
+        status.setObservedGeneration(gen);
 
         // Handle deletion
         if (metadata.getDeletionTimestamp() != null) {
@@ -68,6 +75,7 @@ public class InstanceGroupController implements Reconciler<InstanceGroupCustomRe
 
         // Handle Auto Scaling Group updates
         if (status.getAutoScalingGroupName() == null || status.getAutoScalingGroupName().isEmpty()) {
+            System.out.println("Auto Scaling Group does not exist. Creating...");
             // Use the same epochName as launch template
             String epochName = status.getLaunchTemplateName();
             instanceGroupBuilder.createAutoScalingGroup(
@@ -78,11 +86,13 @@ public class InstanceGroupController implements Reconciler<InstanceGroupCustomRe
                     resource.getSpec().getMaxSize(),
                     resource.getSpec().getDesiredCapacity(),
                     resource.getSpec().getMixedInstanceTypes(),
-                    resource.getSpec().getTags());
+                    resource.getSpec().getTags(),
+                    resource.getSpec().getInstancesDistribution());
 
             status.setAutoScalingGroupName(epochName);
             resource.setStatus(status);
         } else {
+            System.out.println("Auto Scaling Group already exists: " + status.getAutoScalingGroupName());
             // Check for auto scaling group updates
             instanceGroupBuilder.updateAutoScalingGroup(
                     status.getAutoScalingGroupName(),
@@ -91,7 +101,8 @@ public class InstanceGroupController implements Reconciler<InstanceGroupCustomRe
                     resource.getSpec().getMaxSize(),
                     resource.getSpec().getDesiredCapacity(),
                     resource.getSpec().getMixedInstanceTypes(),
-                    resource.getSpec().getTags());
+                    resource.getSpec().getTags(),
+                    resource.getSpec().getInstancesDistribution());
         }
 
         status.setStatus("SUCCESS");
